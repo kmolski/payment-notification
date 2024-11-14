@@ -40,7 +40,8 @@ public class PaymentNotification {
             JdbcCursorItemReader<Payment> paymentReader,
             ItemProcessor<Payment, SimpleMailMessage> paymentToNotificationProcessor,
             SimpleMailMessageItemWriter mailWriter,
-            RetryPolicy retryPolicy
+            RetryPolicy retryPolicy,
+            MailDisplayListener mailDisplayListener
     ) {
         return new StepBuilder("check-payment-and-send", jobRepository)
                 .<Payment, SimpleMailMessage>chunk(10, txManager)
@@ -52,6 +53,7 @@ public class PaymentNotification {
                 .skipLimit(10)
                 .retryPolicy(retryPolicy)
 //                .backOffPolicy()
+                .listener(mailDisplayListener)
                 .build();
     }
 
