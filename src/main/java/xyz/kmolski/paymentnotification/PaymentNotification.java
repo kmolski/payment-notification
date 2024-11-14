@@ -13,6 +13,8 @@ import org.springframework.batch.item.mail.builder.SimpleMailMessageItemWriterBu
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
@@ -41,7 +43,8 @@ public class PaymentNotification {
             ItemProcessor<Payment, SimpleMailMessage> paymentToNotificationProcessor,
             SimpleMailMessageItemWriter mailWriter,
             RetryPolicy retryPolicy,
-            MailDisplayListener mailDisplayListener
+            MailDisplayListener mailDisplayListener,
+            TaskExecutor taskExecutor
     ) {
         return new StepBuilder("check-payment-and-send", jobRepository)
                 .<Payment, SimpleMailMessage>chunk(10, txManager)
@@ -54,12 +57,18 @@ public class PaymentNotification {
                 .retryPolicy(retryPolicy)
 //                .backOffPolicy()
                 .listener(mailDisplayListener)
+                .taskExecutor(taskExecutor)
                 .build();
     }
 
     @Bean
     RetryPolicy retryPolicy() {
         return new MaxAttemptsRetryPolicy(3);
+    }
+
+    @Bean
+    public TaskExecutor taskExecutor() {
+        return new SimpleAsyncTaskExecutor("spring_batch");
     }
 
     @Bean
