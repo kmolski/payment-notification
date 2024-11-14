@@ -19,6 +19,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
+import java.io.IOException;
 
 @SpringBootApplication
 public class PaymentNotification {
@@ -44,6 +45,9 @@ public class PaymentNotification {
                 .reader(paymentReader)
                 .processor(paymentToNotificationProcessor)
                 .writer(mailWriter)
+                .faultTolerant()
+                .skip(RuntimeException.class)
+                .skipLimit(10)
                 .build();
     }
 
