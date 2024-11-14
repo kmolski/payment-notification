@@ -16,10 +16,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.retry.RetryPolicy;
+import org.springframework.retry.policy.MaxAttemptsRetryPolicy;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 
 @SpringBootApplication
 public class PaymentNotification {
@@ -38,7 +39,8 @@ public class PaymentNotification {
             PlatformTransactionManager txManager,
             JdbcCursorItemReader<Payment> paymentReader,
             ItemProcessor<Payment, SimpleMailMessage> paymentToNotificationProcessor,
-            SimpleMailMessageItemWriter mailWriter
+            SimpleMailMessageItemWriter mailWriter,
+            RetryPolicy retryPolicy
     ) {
         return new StepBuilder("check-payment-and-send", jobRepository)
                 .<Payment, SimpleMailMessage>chunk(10, txManager)
@@ -48,7 +50,14 @@ public class PaymentNotification {
                 .faultTolerant()
                 .skip(RuntimeException.class)
                 .skipLimit(10)
+                .retryPolicy(retryPolicy)
+//                .backOffPolicy()
                 .build();
+    }
+
+    @Bean
+    RetryPolicy retryPolicy() {
+        return new MaxAttemptsRetryPolicy(3);
     }
 
     @Bean
