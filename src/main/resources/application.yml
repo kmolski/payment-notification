@@ -1,3 +1,15 @@
 spring:
+  mail:
+    host: CHANGEME
+    port: 587
+    username: CHANGEME
+    password: CHANGEME
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
   application:
     name: payment-notification
