@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class PaymentToNotificationProcessor implements ItemProcessor<Payment, SimpleMailMessage> {
 
     @Override
-    public SimpleMailMessage process(Payment payment) throws Exception {
+    public SimpleMailMessage process(Payment payment) {
         if (payment.isNearDueDate()) {
             var message = new SimpleMailMessage();
             message.setTo(payment.email());
